@@ -4,6 +4,50 @@ An automated lead generation pipeline built for [Off Piste](https://offpiste.io)
 
 ---
 
+## Features
+
+### Automated Reddit scraping
+Monitors 13 subreddits simultaneously — from startup and entrepreneur communities to web development, design, and marketing. On every run it paginates through the newest posts, applies a keyword filter of ~50 hire-intent phrases (things like "looking for a developer", "build our MVP", "design agency"), strips out freelancers advertising their own services, and deduplicates against what's already in the database. Can be triggered manually from the UI, run on a schedule (every N hours), or targeted at a specific date.
+
+### Two-stage AI qualification
+Not every keyword match is a real lead. The pipeline runs two Gemini passes to separate genuine opportunities from noise:
+
+- **Stage 1 — Quick triage:** batches 15 posts per API call for a fast, cheap first pass. Each post gets a tier (Hot / Warm / Cold) and a one-sentence reason.
+- **Stage 2 — Deep analysis:** runs only on Tier 1 and Tier 2 posts. For each one it fetches the author's Reddit history and any URL they linked, then asks Gemini for a detailed breakdown: an overall fit score out of 10, four sub-scores (budget, scope fit, urgency, company stage), a specific demo idea to build for that lead, and the sharpest outreach angle to use.
+
+### Lead tiering
+Every qualified lead gets a tier that tells you exactly what to do with it:
+- **Tier 1 — Hot:** hiring intent + a budget signal. Ready to pitch today.
+- **Tier 2 — Warm:** clear need but budget unknown. Worth a follow-up.
+- **Tier 3 — Cold:** wrong fit — too cheap, wrong tech stack, or just discussion. Kept for reference but deprioritised.
+
+Tiers can be manually overridden from the dashboard if the AI gets it wrong.
+
+### Profile enrichment
+For Tier 1 and Tier 2 leads, a separate enrichment agent digs into each author's Reddit profile — their bio, public activity, and any linked website — and extracts contact and company information: company name, role, email address, website, LinkedIn, and Twitter/X handle. Each result comes with a `contact_confidence` score so you know how actionable the data actually is.
+
+### Five-tab dashboard
+A React frontend that gives you everything you need to work through the pipeline:
+- **All leads** — filterable card list with notes, tier overrides, and one-click "mark contacted"
+- **New** — only leads from the most recent scrape, with a live count badge
+- **Database** — dense sortable table of every lead with multi-select filters and CSV export
+- **Analysis** — visual fit score breakdowns with AI-written demo suggestions and outreach angles
+- **Info** — enriched contact profiles sorted by confidence, ready for outreach
+
+### CSV export
+The Database tab lets you filter the full lead list by any combination of tier, subreddit, and contacted status, then export exactly what's visible as a CSV — useful for dropping leads into a CRM or sharing with the team.
+
+### Live pipeline status
+While a scrape is running the UI polls the backend every second and shows a live status line below the scrape button ("Fetching posts from Reddit...", "Qualifying 34 new posts...", etc.) so you always know where the pipeline is up to.
+
+### Scheduled & on-demand scraping
+The backend scheduler runs the full pipeline automatically on a configurable interval (default: every 4 hours). Scrapes can also be triggered manually from the dashboard in two modes — **Recent** (last N hours) or **By date** (a specific calendar day) — or from the CLI with `npm run scrape`.
+
+### Requalify & purge
+If you update the AI prompts or add new subreddits, you can re-run qualification across all existing leads from the dashboard without re-scraping. There's also a one-click purge to remove all unqualified leads and keep the database clean.
+
+---
+
 ## How it works
 
 ```
